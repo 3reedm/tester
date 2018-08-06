@@ -447,7 +447,7 @@ class Tester:
 
                 yield (owner, date[0], date[1])
 
-        response = [item for item in get_random_items(300)]
+        response = [item for item in get_random_items(1000)]
         file_name = "data1.csv"
         self.printer.out(response, "file", file_name, delim=' ')
 
@@ -463,16 +463,25 @@ class Tester:
             json_b = item[0]
             reg_id = json_b["reg_id"]
             date_begin = json_b["real_begin_date"] if getattr(json_b, "real_begin_date", None) else json_b["begin_date"]
+            date_begin = [int(item) for item in date_begin.split("-")]
             date_end = json_b["real_end_date"] if getattr(json_b, "real_end_date", None)  else json_b["end_date"]
+            date_end = [int(item) for item in date_end.split("-")]
 
-            return (reg_id, item[1], date_begin, date_end)
+            dates_pair = (datetime(*date_begin).timestamp(), datetime(*date_end).timestamp())
+            dates_pair = [item for item in range(int(dates_pair[0]), int(dates_pair[1] + 86400), 86400)]
+            dates = [datetime.fromtimestamp(date).date() for date in dates_pair]
+
+            return [(reg_id, item[1], date) for date in dates]
 
         file_name = "data2.csv"
         response = self.request({"request": request,
                                  "params": db_config})
-        
-        response = [get_parse_item(item) for item in response]
-        self.printer.out(response, "file", file_name)
+
+        result = []
+        for item in response:
+            result.extend(get_parse_item(item))
+
+        self.printer.out(result, "file", file_name)
 
     def request(self, params=None):
         return self.connector.request(params)
