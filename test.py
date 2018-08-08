@@ -1,7 +1,7 @@
 #!/usr/bin/python3.6
 import json
 import psycopg2
-import psycopg2.extras
+#import psycopg2.extras
 import sys
 from http.client import HTTPConnection
 from urllib.parse import urlencode
@@ -483,6 +483,19 @@ class Tester:
 
         self.printer.out(result, "file", file_name)
 
+    def history_test(self):
+        db_config = {
+            "host":  "test-osr-ah-db2.unix.tensor.ru",
+            "dbname": "history2",
+            "user": "viewer",
+            "password": "Viewer1234"
+        }
+        request = 'SELECT "Объект" FROM "ИсторияОбъект" LIMIT 2000'
+        file_name = "data1.csv"
+        response = self.request({"request": request,
+                                 "params": db_config})
+        self.printer.out(response, "file", file_name)
+
     def request(self, params=None):
         return self.connector.request(params)
 
@@ -503,7 +516,8 @@ def __main__():
         'service_center_auto_test',
         'spp_sphinx_test',
         'spp_monitoring_test',
-        'billing_main_test'
+        'billing_main_test',
+        'history_test'
     ]
 
     with Tester(connectors[0], printers[0]) as tester:
